@@ -11,6 +11,7 @@ import sincity.bot.domain.enums.Role;
 import sincity.bot.domain.enums.Stations;
 import sincity.bot.repos.RouteRepo;
 import sincity.bot.repos.UserRepo;
+import sincity.bot.service.UserService;
 
 import java.util.*;
 
@@ -20,28 +21,23 @@ public class Bot extends TelegramLongPollingBot {
     UserRepo userRepo;
     @Autowired
     RouteRepo routeRepo;
+    @Autowired
+    UserService userService;
 
     @Override
     public void onUpdateReceived(Update update) {
-        User user = new User();
         Message message = update.getMessage();
         if (update.getMessage() != null) {
             if (message.getText().equals("/start")) {
+                Role role=Role.PASSENGER;
+                userService.addUser(message, role);
+
                 Route route = new Route();
                 Calendar cl = Calendar.getInstance();
                 cl.set(Calendar.YEAR, 1981);
                 cl.set(Calendar.MONTH, Calendar.OCTOBER);
                 cl.set(Calendar.DAY_OF_MONTH, 11);
                 Date date = cl.getTime();
-                Long userId = Long.valueOf(message.getFrom().getId());
-                String userName = message.getFrom().getFirstName();
-                Long chatId = message.getChatId();
-                Role role = Role.PASSENGER;
-                Set<Role> roles = new HashSet<Role>();
-                roles.add(role);
-                Integer state = 0;
-                String tgLink = "@" + message.getFrom().getUserName();
-                System.out.println("ID :" + userId + " Name :" + userName + " ChatId: " + chatId + " Role: " + role.toString() + " State: " + state + " Link: " + tgLink);
                 route.setDeparture(Stations.DNEPR);
                 route.setArrivel(Stations.SINVO);
                 route.setPlaceCount(1);
@@ -50,10 +46,8 @@ public class Bot extends TelegramLongPollingBot {
                 List<Route> routeList = new ArrayList<>();
                 routeList.add(route);
                 System.out.println(routeList.size());
-                user = new User(userId, userName, chatId, roles, state, tgLink);
-                userRepo.save(user);
                 List<User> userList = new ArrayList<>();
-                userList.add(user);
+                userList.add(userRepo.findByUserId(618687159L));
                 route.setUsers(userList);
                 routeRepo.save(route);
                 // System.out.println(user.getRoutes().get(0).getId());
